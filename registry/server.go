@@ -2,6 +2,8 @@ package registry
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"sync"
@@ -22,6 +24,18 @@ func (r *registry) add(reg Registration) error {
 	return nil
 }
 
+func (r *registry) remove(url string) error {
+	for i := range r.registrations {
+		if r.registrations[i].ServiceURL == url {
+			r.mutex.Lock()
+			r.registrations = append(r.registrations[:i], r.registrations[i+1:]...)
+			r.mutex.Unlock()
+			return nil
+		}
+	}
+	return fmt.Errorf("service at %v not found", url)
+}
+
 type RegistryService struct{}
 
 var reg = registry{
@@ -30,7 +44,7 @@ var reg = registry{
 }
 
 func (s RegistryService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	log.Println("request recaived")
+	log.Println("request received")
 	switch req.Method {
 	case http.MethodPost:
 		var r Registration
@@ -43,6 +57,21 @@ func (s RegistryService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		}
 		log.Printf("Adding service: %v with URL: %v \n", r.ServiceName, r.ServiceURL)
 		err = reg.add(r)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+	case http.MethodDelete:
+		payload, err := io.ReadAll(req.Body)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		url := string(payload)
+		log.Printf("Removing service with URL: %v \n", url)
+		err = reg.remove(url)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)

@@ -36,6 +36,10 @@ func startService(ctx context.Context, serviceName registry.ServiceName, host, p
 		log.Printf("%v started on port %v. Press any key to stop\n", serviceName, port)
 		var s string
 		fmt.Scanln(&s)
+		err := registry.ShutdownService("http://" + host + ":" + port)
+		if err != nil {
+			log.Println(err)
+		}
 		srv.Shutdown(ctx)
 		cancel()
 	}()
