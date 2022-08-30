@@ -41,6 +41,7 @@ func (s RegistryService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		log.Printf("Adding service: %v with URL: %v \n", r.ServiceName, r.ServiceURL)
 		err = reg.add(r)
 		if err != nil {
 			log.Println(err)
@@ -48,6 +49,7 @@ func (s RegistryService) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 	default:
+		log.Println("method not allowed")
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
