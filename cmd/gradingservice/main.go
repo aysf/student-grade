@@ -5,6 +5,7 @@ import (
 	"fmt"
 	stlog "log"
 	"student-grade/grades"
+	"student-grade/log"
 	"student-grade/registry"
 	"student-grade/service"
 )
@@ -16,6 +17,8 @@ func main() {
 	var r registry.Registration
 	r.ServiceName = registry.GradingService
 	r.ServiceURL = serviceAddress
+	r.RequiredServices = []registry.ServiceName{registry.LogService}
+	r.ServiceUpdateURL = r.ServiceURL + "/services"
 
 	ctx, err := service.Start(
 		context.Background(),
@@ -26,6 +29,10 @@ func main() {
 	)
 	if err != nil {
 		stlog.Fatal(err)
+	}
+	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+		fmt.Printf("Logging service found at: %v\n", logProvider)
+		log.SetClientLogger(logProvider, r.ServiceName)
 	}
 
 	<-ctx.Done()
