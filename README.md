@@ -12,7 +12,7 @@ This app is for practicing how to create distributed web application with Go sta
 - ✅ Service Registry
 - ✅ Grading Service
     - ✅ Service Discovery
-    - ❎ Notifying is started or stopped
+    - ❎ Notifying when service is started or stopped
 - ❎ Teacher Portal
     - ❎ Status Monitoring
 
